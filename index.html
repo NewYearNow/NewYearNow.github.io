@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Year's Countdown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: black;
+            transition: background 1s, color 1s;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        #countdown {
+            font-size: 15vw;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                         0 0 20px rgba(255, 255, 255, 0.6), 
+                         0 0 30px rgba(255, 255, 255, 0.4);
+        }
+        #fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        #fullscreen-btn img {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div id="countdown">00 | 00 | 00</div>
+    <button id="fullscreen-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png" alt="Fullscreen">
+    </button>
+    <script>
+        const countdownEl = document.getElementById("countdown");
+        const fullscreenBtn = document.getElementById("fullscreen-btn");
+        const fullscreenImg = fullscreenBtn.querySelector("img");
+        const newYear = new Date(new Date().getFullYear() + 1, 0, 1).getTime();
+        let isFullscreen = false;
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const diff = newYear - now;
+
+            if (diff <= 0) {
+                countdownEl.textContent = "00 | 00 | 00";
+                document.body.style.backgroundColor = "black";
+                document.body.style.color = "white";
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            countdownEl.textContent = `${hours.toString().padStart(2, '0')} | ${minutes.toString().padStart(2, '0')} | ${seconds.toString().padStart(2, '0')}`;
+
+            const progress = 1 - diff / (24 * 60 * 60 * 1000); // Progress from 0 to 1 over 24 hours
+            const colorValue = Math.floor(255 * progress);
+            document.body.style.backgroundColor = `rgb(${255 - colorValue}, ${255 - colorValue}, ${255 - colorValue})`;
+            document.body.style.color = `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+        }
+
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                }
+                fullscreenImg.src = "https://cdn-icons-png.flaticon.com/512/1828/1828778.png"; // Exit Fullscreen Icon
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                fullscreenImg.src = "https://cdn-icons-png.flaticon.com/512/1828/1828919.png"; // Enter Fullscreen Icon
+            }
+            isFullscreen = !isFullscreen;
+        }
+
+        fullscreenBtn.addEventListener("click", toggleFullscreen);
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>
