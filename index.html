@@ -22,7 +22,7 @@
             overflow: hidden;
         }
         #countdown {
-            font-size: 15vw;
+            font-size: 12vw;
             font-weight: bold;
             text-align: center;
             color: white;
@@ -45,7 +45,7 @@
     </style>
 </head>
 <body>
-    <div id="countdown">00 | 00 | 00</div>
+    <div id="countdown">00 | 00 | 00 | 000</div>
     <button id="fullscreen-btn">
         <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png" alt="Fullscreen">
     </button>
@@ -55,13 +55,27 @@
         const fullscreenImg = fullscreenBtn.querySelector("img");
         const newYear = new Date(new Date().getFullYear() + 1, 0, 1).getTime();
         let isFullscreen = false;
+        let serverOffset = 0; // Offset to sync device time with server time
+
+        // Function to fetch the accurate time from time.is
+        async function fetchServerTime() {
+            try {
+                const response = await fetch("https://time.is/Unix_time_now", { cache: "no-cache" });
+                const serverTimeUnix = parseFloat(await response.text()) * 1000; // Convert seconds to milliseconds
+                const localTimeUnix = new Date().getTime();
+                serverOffset = serverTimeUnix - localTimeUnix; // Calculate offset
+            } catch (error) {
+                console.error("Failed to fetch time from server. Using local time as fallback.", error);
+                serverOffset = 0;
+            }
+        }
 
         function updateCountdown() {
-            const now = new Date().getTime();
+            const now = new Date().getTime() + serverOffset; // Sync time with server
             const diff = newYear - now;
 
             if (diff <= 0) {
-                countdownEl.textContent = "00 | 00 | 00";
+                countdownEl.textContent = "00 | 00 | 00 | 000";
                 document.body.style.backgroundColor = "black";
                 document.body.style.color = "white";
                 return;
@@ -70,8 +84,9 @@
             const hours = Math.floor(diff / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            const milliseconds = diff % 1000;
 
-            countdownEl.textContent = `${hours.toString().padStart(2, '0')} | ${minutes.toString().padStart(2, '0')} | ${seconds.toString().padStart(2, '0')}`;
+            countdownEl.textContent = `${hours.toString().padStart(2, '0')} | ${minutes.toString().padStart(2, '0')} | ${seconds.toString().padStart(2, '0')} | ${milliseconds.toString().padStart(3, '0')}`;
 
             const progress = 1 - diff / (24 * 60 * 60 * 1000); // Progress from 0 to 1 over 24 hours
             const colorValue = Math.floor(255 * progress);
@@ -95,8 +110,12 @@
         }
 
         fullscreenBtn.addEventListener("click", toggleFullscreen);
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+
+        // Fetch accurate time and start countdown
+        fetchServerTime().then(() => {
+            setInterval(updateCountdown, 1); // Update every 10ms for milliseconds precision
+            updateCountdown();
+        });
     </script>
 </body>
 </html>
